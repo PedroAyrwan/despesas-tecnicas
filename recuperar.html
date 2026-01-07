@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recuperar Senha</title>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script type="text/javascript">
+       (function(){
+          // INICIALIZAÇÃO: Substitua pela sua Public Key do EmailJS
+          emailjs.init("SUA_PUBLIC_KEY_AQUI");
+       })();
+    </script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h2>Recuperação de Conta</h2>
+        <p>Informe seu CPF para buscarmos seu e-mail cadastrado.</p>
+        
+        <form id="formRecuperar">
+            <div class="input-group">
+                <label for="cpf">CPF</label>
+                <input type="text" id="cpf" placeholder="000.000.000-00" required>
+            </div>
+            
+            <button type="submit" id="btnEnviar">Enviar Link de Recuperação</button>
+            
+            <div style="margin-top: 15px; text-align: center;">
+                <a href="index.html" style="text-decoration: none; color: #555;">Voltar</a>
+            </div>
+        </form>
+    </div>
+
+    <script src="recuperar.js"></script>
+</body>
+</html>

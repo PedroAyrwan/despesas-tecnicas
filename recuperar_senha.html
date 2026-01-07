@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Definir Nova Senha</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h2>Alterar Senha</h2>
+        <p id="msgBoasVindas">Carregando dados...</p>
+
+        <div style="background: #fff3cd; padding: 10px; border-radius: 5px; margin-bottom: 15px; border: 1px solid #ffeeba;">
+            <strong>Senha Atual:</strong> <span id="senhaAtual">...</span>
+        </div>
+
+        <form id="formNovaSenha">
+            <div class="input-group">
+                <label>Nova Senha</label>
+                <input type="password" id="novaSenha" required minlength="4">
+            </div>
+             <div class="input-group">
+                <label>Confirmar Nova Senha</label>
+                <input type="password" id="confirmaSenha" required minlength="4">
+            </div>
+
+            <button type="submit">Salvar Alteração</button>
+        </form>
+    </div>
+
+    <script src="recuperar_senha.js"></script>
+</body>
+</html>
