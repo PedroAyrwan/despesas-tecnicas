@@ -1,35 +1,53 @@
-const URL_API = "SUA_URL_DO_GOOGLE_SCRIPT_AQUI"; // Cole a mesma URL aqui
+// ⚠️ VERIFIQUE SE ESTA URL É A MESMA QUE VOCÊ USA NO RECUPERAR.JS
+const URL_API = "https://script.google.com/macros/s/AKfycbwbG88IJCicebFVp2r3YYVbCb8MgGWKCRu23PzA6cHkr966ku1eSkbHakIkbmxBlJVT/exec"; 
 
-// 1. Pegar o CPF que está na URL (ex: ...html?cpf=123)
+// 1. Pegar o CPF que está na URL
 const params = new URLSearchParams(window.location.search);
 const cpfUrl = params.get('cpf');
 
+// Mostra um alerta se não tiver CPF na URL (para você saber se o link veio certo)
 if (!cpfUrl) {
-    alert("Link inválido. Tente solicitar a recuperação novamente.");
-    window.location.href = "recuperar.html";
+    alert("⚠️ Atenção: O Link não trouxe o CPF. \n\nMotivo: Você provavelmente abriu o arquivo direto sem clicar no e-mail.");
 } else {
+    // Se tiver CPF, tenta buscar os dados
     carregarDadosUsuario();
 }
 
 function carregarDadosUsuario() {
+    console.log("Iniciando busca para o CPF:", cpfUrl);
+
     fetch(URL_API, {
         method: "POST",
         body: JSON.stringify({
-            action: "buscarUsuario", // Chama a função nova do Google
+            action: "buscarUsuario", // Essa é a ação que vamos chamar lá no Google
             cpf: cpfUrl
         })
     })
     .then(r => r.json())
     .then(data => {
+        // ALERTA DE DIAGNÓSTICO (Vai te mostrar o que o servidor respondeu)
+        // Depois que funcionar, você pode apagar essa linha:
+        alert("Resposta do Servidor:\n" + JSON.stringify(data));
+
         if (data.sucesso) {
+            // Se deu certo, preenche a tela
             document.getElementById('msgBoasVindas').innerText = `Olá, ${data.usuario.nome}`;
             document.getElementById('senhaAtual').innerText = data.usuario.senhaAtual;
+            
+            // Remove o aviso de "Carregando..." se existir
+            const aviso = document.querySelector('p:contains("Carregando")'); 
+            if(aviso) aviso.style.display = 'none';
         } else {
-            alert("Erro ao buscar usuário: " + data.erro);
+            alert("❌ Erro do Google: " + data.erro);
         }
+    })
+    .catch(error => {
+        alert("❌ Erro de Conexão: \nO site não conseguiu falar com o Google.\n\nDetalhe: " + error);
+        console.error(error);
     });
 }
 
+// Lógica do Botão de Salvar
 document.getElementById('formNovaSenha').addEventListener('submit', function(e) {
     e.preventDefault();
 
@@ -41,7 +59,6 @@ document.getElementById('formNovaSenha').addEventListener('submit', function(e) 
         return;
     }
 
-    // Salvar no Google
     const btn = document.querySelector('button');
     btn.innerText = "Salvando...";
     btn.disabled = true;
@@ -58,7 +75,7 @@ document.getElementById('formNovaSenha').addEventListener('submit', function(e) 
     .then(data => {
         if (data.sucesso) {
             alert("✅ Senha alterada com sucesso!");
-            window.location.href = "index.html"; // Manda pro login
+            window.location.href = "index.html";
         } else {
             alert("Erro: " + data.erro);
             btn.innerText = "Salvar Alteração";
