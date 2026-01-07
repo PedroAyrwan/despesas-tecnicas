@@ -11,20 +11,6 @@
     <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#28a745">
 <link rel="apple-touch-icon" href="icon-192.png"> ```
-
-#### 4.2. No final do `<body>` do `index.html`
-Adicione este pequeno script antes de fechar a tag `</body>` para "ligar" o Service Worker:
-
-```html
-<script>
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./sw.js')
-        .then(reg => console.log('PWA Service Worker registrado!', reg.scope))
-        .catch(err => console.log('Erro ao registrar SW:', err));
-    });
-  }
-</script>
 </body>
 </head>
 <body class="bg-slate-100 h-screen flex items-center justify-center p-4">
