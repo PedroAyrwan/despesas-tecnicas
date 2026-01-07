@@ -1,53 +1,50 @@
-// ⚠️ VERIFIQUE SE ESTA URL É A MESMA QUE VOCÊ USA NO RECUPERAR.JS
+// ⚠️ Mantenha sua URL correta aqui
 const URL_API = "https://script.google.com/macros/s/AKfycbwbG88IJCicebFVp2r3YYVbCb8MgGWKCRu23PzA6cHkr966ku1eSkbHakIkbmxBlJVT/exec"; 
 
-// 1. Pegar o CPF que está na URL
+// 1. Pegar o CPF da URL
 const params = new URLSearchParams(window.location.search);
 const cpfUrl = params.get('cpf');
 
-// Mostra um alerta se não tiver CPF na URL (para você saber se o link veio certo)
+// Se não tiver CPF na URL, manda voltar (segurança básica)
 if (!cpfUrl) {
-    alert("⚠️ Atenção: O Link não trouxe o CPF. \n\nMotivo: Você provavelmente abriu o arquivo direto sem clicar no e-mail.");
+    alert("Link inválido. Por favor, solicite a recuperação novamente.");
+    window.location.href = "recuperar.html";
 } else {
-    // Se tiver CPF, tenta buscar os dados
     carregarDadosUsuario();
 }
 
 function carregarDadosUsuario() {
-    console.log("Iniciando busca para o CPF:", cpfUrl);
+    // Feedback visual (opcional, pois já está no HTML)
+    document.getElementById('msgBoasVindas').innerText = "Buscando seus dados...";
 
     fetch(URL_API, {
         method: "POST",
         body: JSON.stringify({
-            action: "buscarUsuario", // Essa é a ação que vamos chamar lá no Google
+            action: "buscarUsuario",
             cpf: cpfUrl
         })
     })
     .then(r => r.json())
     .then(data => {
-        // ALERTA DE DIAGNÓSTICO (Vai te mostrar o que o servidor respondeu)
-        // Depois que funcionar, você pode apagar essa linha:
-        alert("Resposta do Servidor:\n" + JSON.stringify(data));
-
         if (data.sucesso) {
-            // Se deu certo, preenche a tela
+            // ✅ SUCESSO: Preenche os dados na tela
+            // O texto "Carregando..." é substituído pelo nome do usuário aqui:
             document.getElementById('msgBoasVindas').innerText = `Olá, ${data.usuario.nome}`;
-            document.getElementById('senhaAtual').innerText = data.usuario.senhaAtual;
             
-            // Remove o aviso de "Carregando..." se existir
-            const aviso = document.querySelector('p:contains("Carregando")'); 
-            if(aviso) aviso.style.display = 'none';
+            // Mostra a senha atual
+            document.getElementById('senhaAtual').innerText = data.usuario.senhaAtual;
         } else {
-            alert("❌ Erro do Google: " + data.erro);
+            alert("Erro: " + data.erro);
+            document.getElementById('msgBoasVindas').innerText = "Erro ao carregar usuário.";
         }
     })
     .catch(error => {
-        alert("❌ Erro de Conexão: \nO site não conseguiu falar com o Google.\n\nDetalhe: " + error);
         console.error(error);
+        alert("Erro de conexão. Tente recarregar a página.");
     });
 }
 
-// Lógica do Botão de Salvar
+// 2. Lógica do Botão de Salvar Nova Senha
 document.getElementById('formNovaSenha').addEventListener('submit', function(e) {
     e.preventDefault();
 
@@ -55,11 +52,13 @@ document.getElementById('formNovaSenha').addEventListener('submit', function(e) 
     const confirma = document.getElementById('confirmaSenha').value;
 
     if (nova !== confirma) {
-        alert("As senhas não coincidem!");
+        alert("As senhas digitadas não coincidem!");
         return;
     }
 
     const btn = document.querySelector('button');
+    const textoOriginal = btn.innerText;
+    
     btn.innerText = "Salvando...";
     btn.disabled = true;
 
@@ -75,11 +74,16 @@ document.getElementById('formNovaSenha').addEventListener('submit', function(e) 
     .then(data => {
         if (data.sucesso) {
             alert("✅ Senha alterada com sucesso!");
-            window.location.href = "index.html";
+            window.location.href = "index.html"; // Manda o usuário fazer login com a senha nova
         } else {
-            alert("Erro: " + data.erro);
-            btn.innerText = "Salvar Alteração";
+            alert("Erro ao salvar: " + data.erro);
+            btn.innerText = textoOriginal;
             btn.disabled = false;
         }
+    })
+    .catch(error => {
+        alert("Erro de conexão ao salvar.");
+        btn.innerText = textoOriginal;
+        btn.disabled = false;
     });
 });
