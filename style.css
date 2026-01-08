@@ -1,45 +1,368 @@
+/* --- IMPORTAÇÃO DA FONTE (INTER) --- */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+/* --- VARIÁVEIS DE CORES (Baseado no Tailwind) --- */
+:root {
+    --bg-color: #f3f4f6;       /* gray-100 */
+    --surface-color: #ffffff;  /* white */
+    --primary-color: #1e3a8a;  /* blue-900 (igual ao header do login) */
+    --accent-color: #0ea5e9;   /* sky-500 */
+    --text-main: #111827;      /* gray-900 */
+    --text-sub: #6b7280;       /* gray-500 */
+    --border-color: #e5e7eb;   /* gray-200 */
+    --success-color: #10b981;  /* emerald-500 */
+    --danger-color: #ef4444;   /* red-500 */
+    --warning-color: #f59e0b;  /* amber-500 */
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --radius-lg: 0.75rem;      /* 12px */
+    --radius-xl: 1rem;         /* 16px */
+}
+
+/* --- CONFIGURAÇÕES GERAIS --- */
 body {
-    font-family: Arial, sans-serif;
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    margin: 0;
+    padding: 20px;
+    padding-bottom: 100px; /* Espaço para a barra inferior */
+    -webkit-font-smoothing: antialiased;
+}
+
+h2, h3, h4 {
+    color: var(--text-main);
+    margin-bottom: 15px;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+}
+
+h3 {
+    font-size: 1.25rem; /* text-xl */
+}
+
+/* --- CABEÇALHO --- */
+.header-card {
+    background: var(--surface-color);
+    padding: 20px 24px;
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-md);
+    margin-bottom: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid var(--border-color);
+}
+
+.header-card h2 {
+    font-size: 1.5rem;
+    color: var(--primary-color);
+}
+
+/* --- FILTROS --- */
+.filter-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+    margin-bottom: 24px;
+    background: var(--surface-color);
+    padding: 20px;
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--border-color);
+}
+
+.filter-container select, 
+.filter-container input {
+    padding: 10px 16px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    font-size: 0.875rem; /* text-sm */
+    color: var(--text-main);
+    outline: none;
+    width: 100%;
+    box-sizing: border-box;
+    transition: all 0.2s;
+    background-color: #f9fafb; /* gray-50 */
+    cursor: pointer;
+}
+
+.filter-container select:focus, 
+.filter-container input:focus {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.2); /* Anel de foco azul */
+    background-color: var(--surface-color);
+}
+
+/* --- TABELA --- */
+.table-container {
+    background: var(--surface-color);
+    border-radius: var(--radius-xl);
+    overflow: hidden; /* Para respeitar o radius */
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--border-color);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 600px; /* Garante que não esmague em mobile */
+}
+
+thead {
+    background-color: #f9fafb; /* gray-50 */
+    border-bottom: 1px solid var(--border-color);
+}
+
+th {
+    padding: 16px 24px;
+    text-align: left;
+    font-size: 0.75rem; /* text-xs */
+    font-weight: 700;
+    color: var(--text-sub);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background-color: transparent; /* Remove cor azul antiga */
+}
+
+td {
+    padding: 16px 24px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+    font-size: 0.875rem; /* text-sm */
+    color: var(--text-main);
+}
+
+#lista-historico tr {
+    cursor: pointer;
+    transition: background-color 0.15s ease-in-out;
+}
+
+#lista-historico tr:hover {
+    background-color: #eff6ff; /* blue-50 */
+}
+
+#lista-historico tr:last-child td {
+    border-bottom: none;
+}
+
+/* --- STATUS BADGES (Estilo Pill) --- */
+td[class^="status-"] {
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    display: inline-block; /* Necessário para padding funcionar bem na célula */
+    margin-top: 10px; /* Ajuste fino */
+}
+
+.status-pendente { 
+    color: var(--warning-color); 
+    background-color: #fffbeb; 
+    padding: 4px 12px; 
+    border-radius: 9999px; 
+    border: 1px solid #fcd34d;
+}
+.status-aprovado { 
+    color: var(--success-color); 
+    background-color: #ecfdf5; 
+    padding: 4px 12px; 
+    border-radius: 9999px; 
+    border: 1px solid #6ee7b7;
+}
+.status-rejeitado { 
+    color: var(--danger-color); 
+    background-color: #fef2f2; 
+    padding: 4px 12px; 
+    border-radius: 9999px; 
+    border: 1px solid #fca5a5;
+}
+
+/* --- DASHBOARD CARDS --- */
+.card-dashboard {
+    background: var(--surface-color);
+    padding: 24px;
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--border-color);
+    margin-bottom: 24px;
+}
+
+/* Ajuste específico para o card de total (Sobrescrevendo o inline style do HTML) */
+#totalGeral {
+    font-family: 'Inter', sans-serif;
+    color: var(--primary-color) !important;
+}
+
+/* --- MODAL --- */
+.modal {
+    display: none; 
+    position: fixed; 
+    z-index: 2000; 
+    left: 0; top: 0;
+    width: 100%; height: 100%;
+    background-color: rgba(17, 24, 39, 0.7); /* backdrop blur escuro */
+    backdrop-filter: blur(4px);
+}
+
+.modal-content {
+    background-color: var(--surface-color);
+    margin: 2vh auto;
+    padding: 32px;
+    border-radius: 1.5rem; /* 24px */
+    width: 90%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: var(--shadow-lg);
+    position: relative;
+    animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.close-modal {
+    position: absolute;
+    right: 24px; top: 20px;
+    font-size: 24px;
+    color: var(--text-sub);
+    cursor: pointer;
+    transition: color 0.2s;
+    background: #f3f4f6;
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+}
+
+.close-modal:hover { color: var(--danger-color); }
+
+.detail-row {
+    margin-bottom: 16px;
+    border-bottom: 1px solid #f3f4f6;
+    padding-bottom: 12px;
+}
+
+.detail-label {
+    font-size: 0.75rem;
+    color: var(--text-sub);
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-bottom: 4px;
+    display: block;
+    letter-spacing: 0.05em;
+}
+
+.detail-value {
+    font-size: 1rem;
+    color: var(--text-main);
+    font-weight: 500;
+}
+
+/* Detalhes Transporte (Box Azul) */
+.transport-info-box {
+    background-color: #eff6ff; /* blue-50 */
+    border: 1px solid #bfdbfe; /* blue-200 */
+    padding: 16px;
+    border-radius: var(--radius-lg);
+    margin: 16px 0;
+}
+
+.transport-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.transport-item { 
+    font-size: 0.875rem; 
+    color: var(--text-main); 
+}
+.transport-item strong { color: var(--primary-color); }
+
+/* --- BOTÕES --- */
+/* Botão Sair */
+.btn-sair {
+    background-color: var(--danger-color);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: var(--radius-lg);
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 0.875rem;
+    transition: background 0.2s;
+    box-shadow: 0 2px 4px rgba(239, 68, 68, 0.2);
+}
+.btn-sair:hover { background-color: #dc2626; }
+
+/* Botões do Modal (Aprovar/Rejeitar) */
+#acoesAdmin button {
+    padding: 14px;
+    border-radius: var(--radius-lg);
+    font-size: 0.95rem;
+    transition: transform 0.1s, opacity 0.2s;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+}
+#acoesAdmin button:active { transform: scale(0.98); }
+
+/* Botão Comprovante */
+.btn-comprovante {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
-    background-color: #f0f2f5;
-    margin: 0;
+    gap: 8px;
+    background-color: #f3f4f6;
+    color: var(--text-main);
+    padding: 12px;
+    border-radius: var(--radius-lg);
+    text-decoration: none;
+    font-weight: 600;
+    margin-top: 20px;
+    border: 1px solid var(--border-color);
+    transition: all 0.2s;
+}
+.btn-comprovante:hover { 
+    background-color: #e5e7eb; 
+    border-color: #d1d5db;
 }
 
-.container {
-    background-color: white;
-    padding: 30px;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    width: 300px;
-    text-align: center;
+/* --- NAVEGAÇÃO INFERIOR --- */
+.bottom-nav {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(8px);
+    border-top: 1px solid var(--border-color);
+    padding: 8px 0 24px 0; /* Extra padding para iPhone safe area */
 }
 
-h2 { margin-bottom: 20px; color: #333; }
-
-.input-group { text-align: left; margin-bottom: 15px; }
-
-label { display: block; margin-bottom: 5px; font-weight: bold; }
-
-input {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    box-sizing: border-box; /* Garante que o padding não quebre o layout */
+.nav-btn {
+    color: var(--text-sub);
+    transition: color 0.2s;
 }
 
-button {
-    width: 100%;
-    padding: 10px;
-    background-color: #28a745;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 16px;
+.nav-btn.active {
+    color: var(--accent-color);
 }
 
-button:hover { background-color: #218838; }
+.nav-btn i {
+    font-size: 1.5rem;
+    margin-bottom: 4px;
+}
+
+/* --- RESPONSIVIDADE --- */
+@media (max-width: 640px) {
+    .filter-container { grid-template-columns: 1fr; }
+    
+    .header-card {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+    .btn-sair { width: 100%; }
+    
+    body { padding: 16px; padding-bottom: 90px; }
+    
+    th, td { padding: 12px 16px; }
+}

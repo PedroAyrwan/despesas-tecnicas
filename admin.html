@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Administrativo</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="admin.css">
+
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#0ea5e9", secondary: "#ef4444", background: "#f3f4f6", surface: "#ffffff", dark: "#0f172a", 
+                    },
+                    fontFamily: { sans: ['Inter', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-background font-sans text-slate-800 pb-24 transition-colors duration-300">
+
+    <div class="fixed top-0 left-0 w-full h-full pointer-events-none -z-10 overflow-hidden">
+        <div class="absolute top-[-10%] right-[-5%] w-96 h-96 bg-primary/5 rounded-full blur-3xl"></div>
+        <div class="absolute bottom-[-10%] left-[-5%] w-96 h-96 bg-blue-600/5 rounded-full blur-3xl"></div>
+    </div>
+
+    <div class="bg-surface shadow-sm border-b border-slate-200 px-6 py-4 flex justify-between items-center sticky top-0 z-20">
+        <div class="flex items-center gap-4">
+            <div class="bg-primary/10 text-primary h-10 w-10 rounded-full flex items-center justify-center">
+                <span class="fas fa-user-shield text-xl"></span>
+            </div>
+            <div>
+                <h2 id="nomeUsuario" class="text-lg font-bold text-slate-800 leading-tight">Olá, Admin</h2>
+                <small class="text-slate-500 font-medium">Painel de Gestão</small>
+            </div>
+        </div>
+        <button onclick="logout()" class="bg-red-50 text-red-500 hover:bg-red-100 px-4 py-2 rounded-lg text-sm font-bold transition flex items-center gap-2">
+            <i class="fas fa-sign-out-alt"></i> Sair
+        </button>
+    </div>
+
+    <main class="max-w-7xl mx-auto p-4 md:p-6 space-y-6">
+
+        <div id="view-extrato" class="view-content block animate-fade-in">
+            <h3 class="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2"><i class="fas fa-receipt text-primary"></i> Extrato</h3>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 bg-white p-5 rounded-2xl shadow-sm border border-slate-100 mb-6">
+                <div class="relative group"><label class="text-xs font-bold text-slate-400 uppercase">Técnico</label><select id="filterTecnico" onchange="aplicarFiltros()" class="w-full bg-slate-50 border border-slate-200 text-sm rounded-xl p-2.5"><option value="">Todos</option></select></div>
+                <div class="relative group"><label class="text-xs font-bold text-slate-400 uppercase">Mês</label><select id="filterMes" onchange="aplicarFiltros()" class="w-full bg-slate-50 border border-slate-200 text-sm rounded-xl p-2.5"><option value="">Todos</option><option value="/01/">Jan</option><option value="/02/">Fev</option><option value="/03/">Mar</option><option value="/04/">Abr</option><option value="/05/">Mai</option><option value="/06/">Jun</option><option value="/07/">Jul</option><option value="/08/">Ago</option><option value="/09/">Set</option><option value="/10/">Out</option><option value="/11/">Nov</option><option value="/12/">Dez</option></select></div>
+                <div class="relative group"><label class="text-xs font-bold text-slate-400 uppercase">Empresa</label><select id="filterEmpresa" onchange="aplicarFiltros()" class="w-full bg-slate-50 border border-slate-200 text-sm rounded-xl p-2.5"><option value="">Todas</option></select></div>
+                <div class="relative group"><label class="text-xs font-bold text-slate-400 uppercase">Status</label><select id="filterStatus" onchange="aplicarFiltros()" class="w-full bg-slate-50 border border-slate-200 text-sm rounded-xl p-2.5"><option value="">Todos</option><option value="Pendente">Pendente</option><option value="Aprovado">Aprovado</option><option value="Rejeitado">Rejeitado</option></select></div>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-lg border border-slate-100 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left">
+                        <thead class="bg-slate-50 text-slate-500 uppercase text-xs font-bold border-b border-slate-200">
+                            <tr><th class="px-6 py-4">Data</th><th class="px-6 py-4">Empresa</th><th class="px-6 py-4">Técnico</th><th class="px-6 py-4">Tipo</th><th class="px-6 py-4">Valor</th><th class="px-6 py-4 text-center">Status</th></tr>
+                        </thead>
+                        <tbody id="lista-historico" class="divide-y divide-slate-100 bg-white"><tr><td colspan="6" class="text-center py-8 text-slate-400">Carregando...</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="view-dashboard" class="view-content hidden animate-fade-in">
+            <h3 class="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2"><i class="fas fa-chart-line text-primary"></i> Dashboard</h3>
+            <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 mb-6 flex flex-wrap gap-4 items-end">
+                <div class="w-full sm:w-auto flex-1"><label class="text-xs font-bold text-slate-400 uppercase">Ano</label><select id="dashAno" onchange="atualizarDashboard()" class="w-full bg-slate-50 border border-slate-200 text-sm rounded-lg p-2.5"></select></div>
+                <div class="w-full sm:w-auto flex-1"><label class="text-xs font-bold text-slate-400 uppercase">Mês</label><select id="dashMes" onchange="atualizarDashboard()" class="w-full bg-slate-50 border border-slate-200 text-sm rounded-lg p-2.5"><option value="">Todos</option><option value="01">Jan</option><option value="02">Fev</option><option value="03">Mar</option><option value="04">Abr</option><option value="05">Mai</option><option value="06">Jun</option><option value="07">Jul</option><option value="08">Ago</option><option value="09">Set</option><option value="10">Out</option><option value="11">Nov</option><option value="12">Dez</option></select></div>
+                <div class="w-full sm:w-auto flex-1"><label class="text-xs font-bold text-slate-400 uppercase">Categoria</label><select id="dashTipo" onchange="atualizarDashboard()" class="w-full bg-slate-50 border border-slate-200 text-sm rounded-lg p-2.5"><option value="">Todas</option><option value="Alimentação">Alimentação</option><option value="Transporte">Transporte</option><option value="Hospedagem">Hospedagem</option><option value="Material">Material</option><option value="Outros">Outros</option></select></div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div class="bg-gradient-to-br from-blue-600 to-blue-800 rounded-2xl p-6 text-white shadow-lg relative overflow-hidden"><p class="text-blue-100 text-xs uppercase font-bold">Total Gasto</p><div id="dashTotal" class="text-3xl font-bold mt-1">R$ 0,00</div></div>
+                <div class="bg-white rounded-2xl p-6 shadow-sm border-l-4 border-orange-400"><p class="text-slate-400 text-xs uppercase font-bold">Pendente</p><div id="dashPendente" class="text-3xl font-bold text-slate-800 mt-1">R$ 0,00</div></div>
+                <div class="bg-white rounded-2xl p-6 shadow-sm border-l-4 border-green-500"><p class="text-slate-400 text-xs uppercase font-bold">Aprovado</p><div id="dashAprovado" class="text-3xl font-bold text-slate-800 mt-1">R$ 0,00</div></div>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100"><h4 class="font-bold text-slate-700 mb-6 text-center">Distribuição por Categoria</h4><div style="height:300px; position:relative;"><canvas id="graficoCategoria"></canvas></div></div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100"><h4 class="font-bold text-slate-700 mb-6 text-center">Evolução de Gastos</h4><div style="height:300px; position:relative;"><canvas id="graficoTempo"></canvas></div></div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 lg:col-span-2"><h4 class="font-bold text-slate-700 mb-6 text-center">Ranking de Técnicos</h4><div style="height:300px; position:relative;"><canvas id="graficoTecnico"></canvas></div></div>
+            </div>
+        </div>
+
+        <div id="view-relatorios" class="view-content hidden animate-fade-in">
+            <h3 class="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2"><i class="fas fa-file-alt text-primary"></i> Relatórios</h3>
+            <div class="bg-white rounded-2xl p-6 shadow-lg border border-slate-100 max-w-4xl mx-auto mt-6">
+                <div class="text-center mb-6"><h4 class="text-lg font-bold text-slate-700">Filtrar e Exportar</h4><p class="text-slate-500 text-sm">Selecione abaixo os dados que deseja baixar.</p></div>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                    <div><label class="text-xs font-bold text-slate-400 uppercase">Técnico</label><select id="relTecnico" class="w-full bg-white border border-slate-300 text-sm rounded-lg p-2.5"><option value="">Todos</option></select></div>
+                    <div><label class="text-xs font-bold text-slate-400 uppercase">Mês</label><select id="relMes" class="w-full bg-white border border-slate-300 text-sm rounded-lg p-2.5"><option value="">Todos</option><option value="/01/">Jan</option><option value="/02/">Fev</option><option value="/03/">Mar</option><option value="/04/">Abr</option><option value="/05/">Mai</option><option value="/06/">Jun</option><option value="/07/">Jul</option><option value="/08/">Ago</option><option value="/09/">Set</option><option value="/10/">Out</option><option value="/11/">Nov</option><option value="/12/">Dez</option></select></div>
+                    <div><label class="text-xs font-bold text-slate-400 uppercase">Empresa</label><select id="relEmpresa" class="w-full bg-white border border-slate-300 text-sm rounded-lg p-2.5"><option value="">Todas</option></select></div>
+                    <div><label class="text-xs font-bold text-slate-400 uppercase">Status</label><select id="relStatus" class="w-full bg-white border border-slate-300 text-sm rounded-lg p-2.5"><option value="">Todos</option><option value="Pendente">Pendente</option><option value="Aprovado">Aprovado</option><option value="Rejeitado">Rejeitado</option></select></div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <button onclick="exportarExcel()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg transition flex items-center justify-center gap-3">
+                        <i class="fas fa-file-excel text-xl"></i> <div><span class="block text-xs font-normal opacity-80">Planilha</span><span>Baixar Excel</span></div>
+                    </button>
+                    <button onclick="exportarPDF()" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg transition flex items-center justify-center gap-3">
+                        <i class="fas fa-file-pdf text-xl"></i> <div><span class="block text-xs font-normal opacity-80">Documento</span><span>Baixar PDF</span></div>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <div class="fixed bottom-0 left-0 w-full bg-white/95 backdrop-blur-md border-t border-slate-200 px-6 py-1 flex justify-around items-center z-50 pb-safe shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+        <button class="nav-btn active group flex-1 py-3" onclick="mudarAba('extrato', this)">
+            <div class="flex flex-col items-center gap-1"><i class="fas fa-list text-xl text-slate-400 group-[.active]:text-primary transition-colors"></i><span class="text-[10px] font-bold text-slate-400 group-[.active]:text-primary transition-colors">Lançamentos</span></div>
+        </button>
+        <button class="nav-btn group flex-1 py-3" onclick="mudarAba('dashboard', this)">
+            <div class="flex flex-col items-center gap-1"><i class="fas fa-chart-pie text-xl text-slate-400 group-[.active]:text-primary transition-colors"></i><span class="text-[10px] font-bold text-slate-400 group-[.active]:text-primary transition-colors">Dashboard</span></div>
+        </button>
+        <button class="nav-btn group flex-1 py-3" onclick="mudarAba('relatorios', this)">
+            <div class="flex flex-col items-center gap-1"><i class="fas fa-file-invoice text-xl text-slate-400 group-[.active]:text-primary transition-colors"></i><span class="text-[10px] font-bold text-slate-400 group-[.active]:text-primary transition-colors">Relatórios</span></div>
+        </button>
+    </div>
+
+    <div id="modalDetalhes" class="modal fixed inset-0 z-[100] hidden">
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity animate-fade-in" onclick="fecharModal()"></div>
+        <div class="modal-content relative bg-white w-[90%] max-w-md mx-auto mt-[10vh] rounded-3xl shadow-2xl overflow-hidden animate-slide-up max-h-[80vh] flex flex-col">
+            <div class="bg-slate-50 px-6 py-4 border-b border-slate-100 flex justify-between items-center sticky top-0 z-10"><h3 class="text-primary font-bold text-lg">Detalhes</h3><button onclick="fecharModal()" class="w-8 h-8 rounded-full bg-slate-200 text-slate-500 hover:text-red-500 flex items-center justify-center"><i class="fas fa-times"></i></button></div>
+            <div class="p-6 overflow-y-auto custom-scrollbar">
+                <div class="space-y-4">
+                    <div><span class="text-[10px] font-bold text-slate-400 uppercase">Empresa</span><p id="detalheEmpresa" class="text-slate-800 font-bold text-lg"></p></div>
+                    <div class="grid grid-cols-2 gap-4"><div class="bg-slate-50 p-3 rounded-xl border"><span class="text-[10px] font-bold text-slate-400 uppercase">Data/Tipo</span><p id="detalheDataTipo" class="text-slate-700 text-sm"></p></div><div class="bg-green-50 p-3 rounded-xl border border-green-100"><span class="text-[10px] font-bold text-green-600 uppercase">Valor</span><p id="detalheValor" class="text-green-700 font-bold text-lg"></p></div></div>
+                    <div><span class="text-[10px] font-bold text-slate-400 uppercase">Técnico(s)</span><div id="detalheUsuario" class="flex flex-wrap gap-2"></div></div>
+                    <div><span class="text-[10px] font-bold text-slate-400 uppercase">Descrição</span><div id="detalheDescricao" class="text-slate-600 text-sm bg-slate-50 p-3 rounded-xl border"></div></div>
+                    <div id="boxTransporte" class="hidden bg-blue-50 border border-blue-100 rounded-xl p-4"><div class="grid grid-cols-2 gap-y-2 text-sm text-slate-700"><div>Distância: <strong id="txtKm">0</strong> km</div><div>R$ <strong id="txtCombustivel">0</strong>/L</div><div class="col-span-2 pt-2 border-t border-blue-100">Consumo: <strong id="txtConsumo">0</strong> km/L</div></div></div>
+                    <div class="flex items-center justify-between pt-2"><span class="text-[10px] font-bold text-slate-400 uppercase">Status</span><div id="detalheStatus"></div></div>
+                </div>
+                <div id="areaComprovante" class="mt-6 hidden"><a id="btnComprovante" href="#" target="_blank" class="flex items-center justify-center gap-2 w-full py-3 bg-slate-100 text-slate-600 font-bold text-sm rounded-xl hover:bg-slate-200 border"><i class="fas fa-paperclip"></i> Ver Comprovante</a></div>
+                <div id="acoesAdmin" class="mt-6 grid grid-cols-2 gap-3 hidden"><button onclick="mudarStatus('Aprovado')" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 rounded-xl shadow-lg">Aprovar</button><button onclick="mudarStatus('Rejeitado')" class="bg-red-500 hover:bg-red-600 text-white font-bold py-3 rounded-xl shadow-lg">Rejeitar</button></div>
+                <p id="msgStatus" class="text-center text-xs font-bold mt-4 hidden"></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const URL_API = "https://script.google.com/macros/s/AKfycbwbG88IJCicebFVp2r3YYVbCb8MgGWKCRu23PzA6cHkr966ku1eSkbHakIkbmxBlJVT/exec"; 
+        let dadosGlobais = [];
+        let idSelecionado = null;
+        let chartCatInstance = null, chartTimeInstance = null, chartTecInstance = null;
+
+        window.onload = function() {
+            const userStr = localStorage.getItem('usuario');
+            if (!userStr) { window.location.href = 'index.html'; return; }
+            document.getElementById('nomeUsuario').innerText = `Olá, ${JSON.parse(userStr).nome}`;
+            carregarDados();
+        };
+
+        function carregarDados() {
+            fetch(URL_API, { method: 'POST', body: JSON.stringify({ action: 'carregarDadosAdmin' }) })
+            .then(res => res.json())
+            .then(data => {
+                if (data.sucesso) {
+                    dadosGlobais = data.historico; 
+                    popularFiltros(data.historico);
+                    renderizarTabela(data.historico);
+                    // Não chamamos atualizarDashboard aqui para evitar o erro de canvas oculto
+                }
+            });
+        }
+
+        function popularFiltros(lista) {
+            const elsTec = [document.getElementById('filterTecnico'), document.getElementById('relTecnico')];
+            const elsEmp = [document.getElementById('filterEmpresa'), document.getElementById('relEmpresa')];
+            const elAno = document.getElementById('dashAno');
+
+            elsTec.forEach(el => el.innerHTML = '<option value="">Todos</option>');
+            elsEmp.forEach(el => el.innerHTML = '<option value="">Todas</option>');
+            elAno.innerHTML = '<option value="">Todos</option>';
+
+            let nomes = []; lista.forEach(i => i.usuario.split(/[+\-]/).forEach(n => nomes.push(n.trim())));
+            const tecs = [...new Set(nomes)].filter(Boolean).sort();
+            const emps = [...new Set(lista.map(i => i.empresa))].filter(Boolean).sort();
+            const anos = [...new Set(lista.map(i => i.data.split('/')[2]))].sort().reverse();
+
+            tecs.forEach(t => elsTec.forEach(el => { let o = document.createElement('option'); o.value = t.toLowerCase(); o.innerText = t; el.appendChild(o); }));
+            emps.forEach(e => elsEmp.forEach(el => { let o = document.createElement('option'); o.value = e; o.innerText = e; el.appendChild(o); }));
+            anos.forEach(a => { let o = document.createElement('option'); o.value = a; o.innerText = a; if(a == new Date().getFullYear()) o.selected = true; elAno.appendChild(o); });
+        }
+
+        // --- TABELA ---
+        function aplicarFiltros() {
+            const tec = document.getElementById('filterTecnico').value.toLowerCase();
+            const mes = document.getElementById('filterMes').value;
+            const emp = document.getElementById('filterEmpresa').value;
+            const stat = document.getElementById('filterStatus').value;
+            const filtrados = dadosGlobais.filter(item => {
+                return (tec === "" || item.usuario.toLowerCase().includes(tec)) && (mes === "" || item.data.includes(mes)) && (emp === "" || item.empresa === emp) && (stat === "" || item.status === stat);
+            });
+            renderizarTabela(filtrados);
+        }
+
+        function renderizarTabela(lista) {
+            const tbody = document.getElementById('lista-historico'); tbody.innerHTML = '';
+            if(lista.length === 0) { tbody.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-slate-400">Nenhum registro.</td></tr>'; return; }
+            lista.forEach((item) => {
+                const tr = document.createElement('tr'); tr.onclick = () => abrirModal(item);
+                tr.className = "hover:bg-blue-50 transition cursor-pointer group border-b border-slate-50 last:border-0"; 
+                let stClass = item.status === 'Pendente' ? "bg-orange-50 text-orange-600" : (item.status === 'Aprovado' ? "bg-green-50 text-green-600" : "bg-red-50 text-red-600");
+                tr.innerHTML = `<td class="px-6 py-4 font-medium text-slate-700 text-xs">${item.data}</td><td class="px-6 py-4 text-slate-500 text-xs">${item.empresa||'-'}</td><td class="px-6 py-4 text-slate-600 text-xs font-bold truncate max-w-[100px]">${item.usuario}</td><td class="px-6 py-4 text-xs font-bold uppercase text-slate-400">${item.tipo}</td><td class="px-6 py-4 font-bold text-slate-800 text-sm">R$ ${item.valor}</td><td class="px-6 py-4 text-center"><span class="${stClass} px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ring-1 ring-inset ring-black/5">${item.status}</span></td>`;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // --- DASHBOARD (CORRIGIDO PARA NÃO QUEBRAR) ---
+        function atualizarDashboard() {
+            const ano = document.getElementById('dashAno').value;
+            const mes = document.getElementById('dashMes').value;
+            const tipo = document.getElementById('dashTipo').value;
+            
+            const dados = dadosGlobais.filter(item => {
+                const partes = item.data.split('/');
+                if(partes.length < 3) return false;
+                const [d, m, y] = partes;
+                return (!ano || y === ano) && (!mes || m === mes) && (!tipo || item.tipo === tipo);
+            });
+
+            let tGasto = 0, tPend = 0, tAprov = 0;
+            let cat = {}, tempo = {}, tec = {};
+
+            dados.forEach(i => {
+                let v = parseFloat(i.valor) || 0;
+                tGasto += v;
+                if(i.status === 'Pendente') tPend += v;
+                if(i.status === 'Aprovado') tAprov += v;
+                cat[i.tipo] = (cat[i.tipo] || 0) + v;
+                // data dd/mm/yyyy -> usa dia e mes
+                tempo[i.data.substring(0,5)] = (tempo[i.data.substring(0,5)] || 0) + v;
+                let u = i.usuario.split(/[+\-]/)[0].trim();
+                tec[u] = (tec[u] || 0) + v;
+            });
+
+            document.getElementById('dashTotal').innerText = tGasto.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            document.getElementById('dashPendente').innerText = tPend.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            document.getElementById('dashAprovado').innerText = tAprov.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+            renderizarGraficos(cat, tempo, tec);
+        }
+
+        function renderizarGraficos(cat, tempo, tec) {
+            const cfg = { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: {size: 10} } } } };
+            
+            if(chartCatInstance) chartCatInstance.destroy();
+            chartCatInstance = new Chart(document.getElementById('graficoCategoria'), { type: 'doughnut', data: { labels: Object.keys(cat), datasets: [{ data: Object.values(cat), backgroundColor: ['#0ea5e9', '#22c55e', '#f59e0b', '#ef4444', '#8b5cf6'] }] }, options: cfg });
+
+            if(chartTimeInstance) chartTimeInstance.destroy();
+            const dates = Object.keys(tempo).sort((a,b) => {
+                const [d1, m1] = a.split('/'); const [d2, m2] = b.split('/');
+                return new Date(2024, m1-1, d1) - new Date(2024, m2-1, d2);
+            });
+            chartTimeInstance = new Chart(document.getElementById('graficoTempo'), { type: 'bar', data: { labels: dates, datasets: [{ label: 'Gasto', data: dates.map(d => tempo[d]), backgroundColor: '#3b82f6', borderRadius: 4 }] }, options: { ...cfg, plugins: { legend: { display: false } } } });
+
+            if(chartTecInstance) chartTecInstance.destroy();
+            const topTec = Object.entries(tec).sort((a,b)=>b[1]-a[1]).slice(0,10);
+            chartTecInstance = new Chart(document.getElementById('graficoTecnico'), { type: 'bar', data: { labels: topTec.map(i=>i[0]), datasets: [{ label: 'Total', data: topTec.map(i=>i[1]), backgroundColor: '#8b5cf6', borderRadius: 4 }] }, options: { indexAxis: 'y', ...cfg, plugins: { legend: { display: false } } } });
+        }
+
+        // --- EXPORTAÇÃO ---
+        function obterDadosRelatorio() {
+            const tec = document.getElementById('relTecnico').value.toLowerCase();
+            const mes = document.getElementById('relMes').value;
+            const emp = document.getElementById('relEmpresa').value;
+            const stat = document.getElementById('relStatus').value;
+            return dadosGlobais.filter(item => {
+                return (tec === "" || item.usuario.toLowerCase().includes(tec)) && (mes === "" || item.data.includes(mes)) && (emp === "" || item.empresa === emp) && (stat === "" || item.status === stat);
+            });
+        }
+
+        function exportarExcel() {
+            const dados = obterDadosRelatorio();
+            if(dados.length === 0) { alert("Sem dados."); return; }
+            let csv = "Data;Empresa;Tecnico;Categoria;Valor;Status\n";
+            dados.forEach(r => csv += `${r.data};"${r.empresa}";"${r.usuario}";"${r.tipo}";"${r.valor}";"${r.status}"\n`);
+            const link = document.createElement("a"); link.href = window.URL.createObjectURL(new Blob([csv], {type:'text/csv;charset=utf-8;'})); link.download = "relatorio.csv"; link.click();
+        }
+
+        function exportarPDF() {
+            const dados = obterDadosRelatorio();
+            if(dados.length === 0) { alert("Sem dados."); return; }
+            const { jsPDF } = window.jspdf; const doc = new jsPDF();
+            doc.text("Relatório Financeiro", 14, 20);
+            doc.autoTable({ head: [["Data", "Empresa", "Técnico", "Tipo", "Valor", "Status"]], body: dados.map(i => [i.data, i.empresa, i.usuario, i.tipo, "R$ "+i.valor, i.status]), startY: 30, styles: { fontSize: 8 }, headStyles: { fillColor: [14, 165, 233] } });
+            doc.save("relatorio.pdf");
+        }
+
+        // --- INTERAÇÕES ---
+        function abrirModal(item) {
+            idSelecionado = item.id;
+            document.getElementById('detalheEmpresa').innerText = item.empresa || "-";
+            const uBox = document.getElementById('detalheUsuario'); uBox.innerHTML = '';
+            item.usuario.split(/[+\-]/).forEach(u => uBox.innerHTML += `<span class="bg-slate-100 text-slate-600 px-2 py-1 rounded text-xs font-bold border">${u.trim()}</span>`);
+            document.getElementById('detalheDataTipo').innerText = `${item.data} • ${item.tipo}`;
+            document.getElementById('detalheValor').innerText = `R$ ${item.valor}`;
+            document.getElementById('detalheDescricao').innerText = item.descricao;
+            document.getElementById('detalheStatus').innerHTML = `<span class="px-3 py-1 rounded-full text-xs font-bold uppercase bg-slate-100 text-slate-600">${item.status}</span>`;
+            
+            if(item.tipo === 'Transporte' && item.descricao.match(/\[(.*?)\]/)) {
+                const p = item.descricao.match(/\[(.*?)\]/)[1].split('|');
+                document.getElementById('txtKm').innerText = p[0] || 0; document.getElementById('txtCombustivel').innerText = p[1] || 0; document.getElementById('txtConsumo').innerText = p[2] || 0;
+                document.getElementById('boxTransporte').classList.remove('hidden');
+                document.getElementById('detalheDescricao').innerText = item.descricao.replace(/\[(.*?)\]/, '').trim();
+            } else { document.getElementById('boxTransporte').classList.add('hidden'); }
+
+            const acoes = document.getElementById('acoesAdmin');
+            if(item.status === 'Pendente') acoes.classList.remove('hidden'); else acoes.classList.add('hidden');
+            
+            const areaC = document.getElementById('areaComprovante');
+            if(item.comprovante && item.comprovante.includes('http')) { areaC.classList.remove('hidden'); document.getElementById('btnComprovante').href = item.comprovante; } else { areaC.classList.add('hidden'); }
+            
+            document.getElementById('msgStatus').classList.add('hidden');
+            document.getElementById('modalDetalhes').classList.remove('hidden');
+        }
+
+        function mudarStatus(st) {
+            const msg = document.getElementById('msgStatus'); msg.classList.remove('hidden'); msg.innerText = "Enviando..."; msg.className = "text-center text-xs text-slate-400 mt-4";
+            fetch(URL_API, { method: 'POST', body: JSON.stringify({ action: 'alterarStatusDespesa', id: idSelecionado, novoStatus: st }) })
+            .then(r => r.json()).then(d => {
+                if(d.sucesso) { msg.innerText = "Sucesso!"; msg.className = "text-center text-xs text-green-500 font-bold mt-4"; carregarDados(); setTimeout(fecharModal, 1000); }
+                else { msg.innerText = "Erro: " + d.erro; msg.className = "text-center text-xs text-red-500 font-bold mt-4"; }
+            });
+        }
+
+        function fecharModal() { document.getElementById('modalDetalhes').classList.add('hidden'); }
+        window.onclick = function(e) { if (e.target.id == 'modalDetalhes') fecharModal(); }
+        
+        function mudarAba(id, btn) {
+            document.querySelectorAll('.view-content').forEach(d => d.classList.add('hidden'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.nav-btn .icon-container').forEach(i => i.classList.remove('bg-primary/10'));
+            document.querySelectorAll('.nav-btn i').forEach(i => i.classList.remove('text-primary'));
+            document.querySelectorAll('.nav-btn span').forEach(s => s.classList.remove('text-primary'));
+            document.getElementById('view-'+id).classList.remove('hidden');
+            btn.classList.add('active');
+            btn.querySelector('i').classList.add('text-primary');
+            btn.querySelector('span').classList.add('text-primary');
+
+            // CORREÇÃO CRUCIAL: Só atualiza o dashboard se a aba for dashboard
+            if (id === 'dashboard') {
+                setTimeout(atualizarDashboard, 100); 
+            }
+        }
+        function logout() { localStorage.removeItem('usuario'); window.location.href = 'index.html'; }
+    </script>
+</body>
+</html>
